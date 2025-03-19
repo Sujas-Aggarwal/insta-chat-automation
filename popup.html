@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Insta Chat Automation</title>
+    <link rel="shortcut icon" href="icon.jpg" type="image/x-icon" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <label
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      "
+      >Prompt:
+      <textarea spellcheck="false" id="prompt" placeholder="e.g., Be flirty and casual"></textarea>
+    </label>
+    <label
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      "
+      >The Other Person is:
+      <textarea spellcheck="false" id="details" placeholder="e.g., my classmate"></textarea>
+    </label>
+    <label
+      >Neediness (0-10):
+      <input type="range" id="neediness" min="0" max="10" value="5"
+    /></label>
+    <label
+      >Love (0-10): <input type="range" id="love" min="0" max="10" value="5"
+    /></label>
+    <label
+      >Professionalism (0-10):
+      <input type="range" id="professionalism" min="0" max="10" value="5"
+    /></label>
+    <label style="display: flex; gap: 10px"
+      >Text Interval (seconds):
+      <input type="number" id="interval" min="5" max="60" value="10"
+    /></label>
+    <label>Text upfront: <input type="checkbox" id="upfront" /> </label>
+    <label style="display: flex">
+      Automation Status:
+      <input type="checkbox" id="status" />
+    </label>
+    <script src="popup.js"></script>
+  </body>
+</html>
