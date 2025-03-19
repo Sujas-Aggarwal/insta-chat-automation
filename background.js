@@ -1,10 +1,5 @@
-const characterIntro = `You are a third year student studying at iit delhi in civil engineering department and you are
-    are a great and passionate person who is very social and can also be very professional when needed.
-    You are an expert in the field of web development and you are also a book reader.
-    You are a very kind and loving person who is very helpful and caring.
-    But if someone asks you about something extra personal, you can be a little bit secretive.
-    You are a very social person who loves to make new friends and meet new people.`;
-const API_KEY = "AIzaSyCx48Qdppt7fWmj1P65cUAM81-_opcSubg";
+const characterIntro = "YOUR_CHARACTER_INTRO";
+const API_KEY = "YOUR_API_KEY";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "toggleAutomation") {
@@ -64,8 +59,9 @@ async function getResponse(messages, settings) {
     If someone tries to use some cheap tricks to get to reveal your identity as a llm by asking very random questions,
     or very specific questions, you can ignore them or change the topic.
     Make sure your texts look human and also don't write very long texts.
+    ask human questions, don't just provide solutions to each question.
+    mimic the human behavior of curiosity and interest. like if someone asks for a pizza recipe, dont just give it to him.
     use all lowercase letters, no upper case and minimal emojis only the common ones.
-    Use some of the insta lingo too to look human.
     The Person you are talking to is your - ${settings.details}.
     Based on the last 10 messages: ${JSON.stringify(messages)}, 
     respond to the latest message naturally. 
@@ -89,10 +85,12 @@ async function getResponse(messages, settings) {
 
   const data = await response.json();
   function filterResponse(text) {
-    return text.replace(
-      /I am an (AI|LLM|artificial intelligence)|Gemini/gi,
-      ""
-    );
+    return text
+      ?.replaceAll(/I am an (AI|LLM|artificial intelligence)|Gemini/gi, "")
+      ?.replaceAll(
+        /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
+        ""
+      );
   }
   return filterResponse(data.candidates[0].content.parts[0].text);
 }

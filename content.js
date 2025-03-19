@@ -5,7 +5,7 @@ let lastMessage;
 let myLastMessage;
 let lastMessageFromOther = true; // Track if the last message was from the other person
 
-function sendInstagramMessage(text) {
+async function sendInstagramMessage(text) {
   // Find the contenteditable div
   myLastMessage = text; // Store what our bot is sending
   lastMessageFromOther = false; // Mark that the last activity was our message
@@ -15,6 +15,42 @@ function sendInstagramMessage(text) {
     console.error("Chat input not found");
     return false;
   }
+
+  // Focus the input
+  chatInput.focus();
+
+  // Clear any existing content first
+  chatInput.innerHTML = "";
+
+  function fakeTyping() {
+    const inputEvent = new InputEvent("input", {
+      bubbles: true,
+      cancelable: true,
+      inputType: "insertText",
+      data: text,
+    });
+
+    // Create a text node and paragraph for the message
+    const paragraph = document.createElement("p");
+    paragraph.className = "xat24cr xdj266r xdpxx8g";
+    paragraph.setAttribute("dir", "ltr");
+
+    const span = document.createElement("span");
+    span.className = "x3jgonx";
+    span.setAttribute("data-lexical-text", "true");
+    span.textContent = text;
+
+    paragraph.appendChild(span);
+    chatInput.appendChild(paragraph);
+
+    // Dispatch the input event
+    chatInput.dispatchEvent(inputEvent);
+  }
+
+  fakeTyping();
+  await new Promise((resolve) =>
+    setTimeout(resolve, Math.min(15000,Math.max(2000, 100 * text.length)))
+  ); // for mimicking human behavior
 
   // Focus the input
   chatInput.focus();
@@ -107,30 +143,19 @@ function startAutomation() {
       const latestMessage = messages[messages.length - 1];
 
       // Check if the latest message is our own message
-      const isOurMessage =
-        latestMessage.replaceAll(
-          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
-          ""
-        ) ===
-        myLastMessage?.replaceAll(
-          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
-          ""
-        );
+      const isOurMessage = latestMessage?.trim() === myLastMessage?.trim();
 
-      console.log("Latest message:", latestMessage);
-      console.log(
-        "Our last message:",
-        myLastMessage?.replaceAll(
-          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
-          ""
-        )
-      );
+      console.log("Latest message:", latestMessage?.trim());
+      console.log("Our last message:", myLastMessage?.trim());
       console.log("Is our message:", isOurMessage);
       console.log("Last message from other:", lastMessageFromOther);
 
       // Only respond if the latest message is different from our last message
       // AND either it's the first message or the last message was from the other person
-      if (latestMessage !== lastMessage && !isOurMessage) {
+      if (
+        lastMessage === undefined ||
+        (latestMessage?.trim() !== lastMessage?.trim() && !isOurMessage)
+      ) {
         console.log("New message from other person detected");
         lastMessage = latestMessage;
         lastMessageFromOther = true;
@@ -150,7 +175,7 @@ function startAutomation() {
 
   // Set up new interval
   if (settings.status) {
-    const interval = Math.max(8000, settings.interval || 10000); // Ensure minimum interval of 8 seconds
+    const interval = Math.max(5000, settings.interval || 10000); // Ensure minimum interval of 5 seconds
     console.log(`Setting automation interval to ${interval} milliseconds`);
     automationTimer = setInterval(checkAndRespond, interval);
   }
