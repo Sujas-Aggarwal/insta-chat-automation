@@ -1,29 +1,15 @@
 // content.js
 let settings;
 let automationTimer;
-
-// function submitMessage(text) {
-//   console.log("Sending message:", text);
-//   const input = document.querySelector("div[contenteditable='true']");
-//   const button = document.querySelector("button[type='submit']");
-//   if (input && button) {
-//     input.innerText = text; // Use innerText for contenteditable div
-
-//     // Trigger input event to ensure the UI updates
-//     const inputEvent = new Event('input', { bubbles: true });
-//     input.dispatchEvent(inputEvent);
-
-//     // Small delay to ensure the UI registers the input
-//     setTimeout(() => {
-//       button.click();
-//     }, 100);
-//   } else {
-//     console.log("No input or button found");
-//   }
-// }
+let lastMessage;
+let myLastMessage;
+let lastMessageFromOther = true; // Track if the last message was from the other person
 
 function sendInstagramMessage(text) {
   // Find the contenteditable div
+  myLastMessage = text; // Store what our bot is sending
+  lastMessageFromOther = false; // Mark that the last activity was our message
+  
   const chatInput = document.querySelector('[aria-label="Message"]');
   if (!chatInput) {
     console.error("Chat input not found");
@@ -88,44 +74,53 @@ function startAutomation() {
     return;
   }
 
-  let lastMessageCount = 0;
-
   function getLastMessages() {
     // Implement proper message retrieval logic here
     // This is a placeholder - you'll need to replace this with actual DOM parsing
-    const messageElements = document.querySelectorAll(".message-container"); // Adjust selector to match Instagram's message containers
+    const messageElements = document.getElementsByClassName(
+      "html-div xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 x18d9i69 xkhd6sd xeuugli x1vjfegm"
+    ); // Adjust selector to match Instagram's message containers
     const messages = [];
 
     if (messageElements.length > 0) {
       // Get the last 10 messages or fewer if there aren't 10
       const count = Math.min(10, messageElements.length);
-      for (
-        let i = messageElements.length - count;
-        i < messageElements.length;
-        i++
-      ) {
-        messages.push(messageElements[i].textContent);
+      for (let i = messageElements.length - count; i < messageElements.length; i++) {
+        if (messageElements[i] && messageElements[i].textContent) {
+          messages.push(messageElements[i].textContent);
+        }
       }
     }
-
-    return messages.length > 0 ? messages : ["hi"]; // Return actual messages or fallback
+    
+    return messages; // Return actual messages
   }
-
+  
   function checkAndRespond() {
     const messages = getLastMessages();
-    console.log("Checking and Responding, message count:", messages.length);
-
-    if (messages.length > lastMessageCount) {
-      console.log("New message detected");
-      lastMessageCount = messages.length;
-      getResponse(messages);
+    console.log("Checking and Responding, Messages", messages);
+    
+    if (messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      
+      // Check if the latest message is our own message
+      const isOurMessage = latestMessage === myLastMessage;
+      
+      console.log("Latest message:", latestMessage);
+      console.log("Our last message:", myLastMessage);
+      console.log("Is our message:", isOurMessage);
+      console.log("Last message from other:", lastMessageFromOther);
+      
+      // Only respond if the latest message is different from our last message
+      // AND either it's the first message or the last message was from the other person
+      if (latestMessage !== lastMessage && latestMessage !== myLastMessage) {
+        console.log("New message from other person detected");
+        lastMessage = latestMessage;
+        lastMessageFromOther = true;
+        getResponse(messages);
+      } else if (!lastMessageFromOther) {
+        console.log("Waiting for response from other person - we sent the last message");
+      }
     }
-  }
-
-  if (settings.upfront) {
-    getResponse(getLastMessages());
-  } else {
-    checkAndRespond();
   }
 
   // Clear existing timer if it exists
@@ -135,13 +130,19 @@ function startAutomation() {
 
   // Set up new interval
   if (settings.status) {
-    const interval = Math.max(3000, settings.interval || 10000); // Ensure minimum interval of 5 seconds
+    const interval = Math.max(8000, settings.interval || 10000); // Ensure minimum interval of 8 seconds
     console.log(`Setting automation interval to ${interval} milliseconds`);
     automationTimer = setInterval(checkAndRespond, interval);
   }
 }
 
 function getResponse(messages) {
+  // Only get a response if the last message was from the other person
+  if (!lastMessageFromOther) {
+    console.log("Not requesting response because we sent the last message");
+    return;
+  }
+  
   console.log("Requesting response from background script");
   chrome.runtime.sendMessage(
     { action: "getResponse", messages: messages || [] },
@@ -152,6 +153,7 @@ function getResponse(messages) {
       }
       if (response) {
         console.log("Response received:", response.substring(0, 50) + "...");
+        myLastMessage = response;
         sendInstagramMessage(response);
       } else {
         console.error("No response received from background script");

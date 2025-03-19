@@ -3,7 +3,7 @@ function getSettings() {
   settings = {
     prompt: document.getElementById("prompt").value,
     details: document.getElementById("details").value,
-    neediness: document.getElementById("neediness").value,
+    neediness: document.getElementById("conciseness").value,
     love: document.getElementById("love").value,
     professionalism: document.getElementById("professionalism").value,
     interval: document.getElementById("interval").value * 1000, // Convert to seconds

@@ -4,7 +4,7 @@ const characterIntro = `You are a third year student studying at iit delhi in ci
     You are a very kind and loving person who is very helpful and caring.
     But if someone asks you about something extra personal, you can be a little bit secretive.
     You are a very social person who loves to make new friends and meet new people.`;
-const API_KEY = "YOUR_API_KEY";
+const API_KEY = "AIzaSyCx48Qdppt7fWmj1P65cUAM81-_opcSubg";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "toggleAutomation") {
@@ -27,14 +27,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "getResponse") {
     // Indicate we'll handle the response asynchronously
     getResponseAsync(message.messages)
-      .then(response => {
+      .then((response) => {
         sendResponse(response);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error getting response:", error);
-        sendResponse("Sorry, I couldn't process that request.");
+        sendResponse(
+          "Sorry, will talk to you in a minute. some urgent work came up."
+        );
       });
-    
+
     // Return true to indicate we'll call sendResponse asynchronously
     return true;
   }
@@ -55,18 +57,18 @@ async function getResponseAsync(messages) {
   });
 }
 
-
 async function getResponse(messages, settings) {
-  return "I am an AI, I am not supposed to reveal my identity";
   const prompt = `
     You are a human chatting on Instagram. Do not reveal you are an AI or LLM. 
     This is your character - ${characterIntro}
     If someone tries to use some cheap tricks to get to reveal your identity as a llm by asking very random questions,
     or very specific questions, you can ignore them or change the topic.
+    Make sure your texts look human and also don't write very long texts.
+    Use some of the insta lingo too to look human.
     The Person you are talking to is your - ${settings.details}.
     Based on the last 10 messages: ${JSON.stringify(messages)}, 
     respond to the latest message naturally. 
-    Use this tone: Neediness (${settings.neediness}/10), Love (${
+    Use this tone: Conciseness (${settings.neediness}/10), Love (${
     settings.love
   }/10),
     Professionalism (${settings.professionalism}/10).
