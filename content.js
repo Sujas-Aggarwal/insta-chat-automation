@@ -9,7 +9,7 @@ function sendInstagramMessage(text) {
   // Find the contenteditable div
   myLastMessage = text; // Store what our bot is sending
   lastMessageFromOther = false; // Mark that the last activity was our message
-  
+
   const chatInput = document.querySelector('[aria-label="Message"]');
   if (!chatInput) {
     console.error("Chat input not found");
@@ -85,40 +85,60 @@ function startAutomation() {
     if (messageElements.length > 0) {
       // Get the last 10 messages or fewer if there aren't 10
       const count = Math.min(10, messageElements.length);
-      for (let i = messageElements.length - count; i < messageElements.length; i++) {
+      for (
+        let i = messageElements.length - count;
+        i < messageElements.length;
+        i++
+      ) {
         if (messageElements[i] && messageElements[i].textContent) {
           messages.push(messageElements[i].textContent);
         }
       }
     }
-    
+
     return messages; // Return actual messages
   }
-  
+
   function checkAndRespond() {
     const messages = getLastMessages();
     console.log("Checking and Responding, Messages", messages);
-    
+
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      
+
       // Check if the latest message is our own message
-      const isOurMessage = latestMessage === myLastMessage;
-      
+      const isOurMessage =
+        latestMessage.replaceAll(
+          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
+          ""
+        ) ===
+        myLastMessage?.replaceAll(
+          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
+          ""
+        );
+
       console.log("Latest message:", latestMessage);
-      console.log("Our last message:", myLastMessage);
+      console.log(
+        "Our last message:",
+        myLastMessage?.replaceAll(
+          /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu,
+          ""
+        )
+      );
       console.log("Is our message:", isOurMessage);
       console.log("Last message from other:", lastMessageFromOther);
-      
+
       // Only respond if the latest message is different from our last message
       // AND either it's the first message or the last message was from the other person
-      if (latestMessage !== lastMessage && latestMessage !== myLastMessage) {
+      if (latestMessage !== lastMessage && !isOurMessage) {
         console.log("New message from other person detected");
         lastMessage = latestMessage;
         lastMessageFromOther = true;
         getResponse(messages);
       } else if (!lastMessageFromOther) {
-        console.log("Waiting for response from other person - we sent the last message");
+        console.log(
+          "Waiting for response from other person - we sent the last message"
+        );
       }
     }
   }
@@ -142,7 +162,7 @@ function getResponse(messages) {
     console.log("Not requesting response because we sent the last message");
     return;
   }
-  
+
   console.log("Requesting response from background script");
   chrome.runtime.sendMessage(
     { action: "getResponse", messages: messages || [] },
@@ -177,14 +197,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 });
-
-// // Initialize by checking for existing settings
-// chrome.storage.local.get("settings", (result) => {
-//   if (result.settings) {
-//     settings = result.settings;
-//     if (settings.status) {
-//       console.log("Initializing automation with stored settings");
-//       startAutomation();
-//     }
-//   }
-// });

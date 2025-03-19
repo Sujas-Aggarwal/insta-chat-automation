@@ -64,6 +64,7 @@ async function getResponse(messages, settings) {
     If someone tries to use some cheap tricks to get to reveal your identity as a llm by asking very random questions,
     or very specific questions, you can ignore them or change the topic.
     Make sure your texts look human and also don't write very long texts.
+    use all lowercase letters, no upper case and minimal emojis only the common ones.
     Use some of the insta lingo too to look human.
     The Person you are talking to is your - ${settings.details}.
     Based on the last 10 messages: ${JSON.stringify(messages)}, 
